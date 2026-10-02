@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Déblocage téléphone</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+
+    --bg: #12151a;
+    --panel: #181c23;
+    --line: #2a2f3a;
+    --text: #eef1f5;
+    --muted: #8a92a3;
+    --blue: #4fa3ff;
+    --amber: #ffb648;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #f4f5f7;
+      --panel: #ffffff;
+      --line: #dde1e8;
+      --text: #14161a;
+      --muted: #5c6472;
+      --blue: #1f6fe0;
+      --amber: #c9790a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151a;
+    --panel: #181c23;
+    --line: #2a2f3a;
+    --text: #eef1f5;
+    --muted: #8a92a3;
+    --blue: #4fa3ff;
+    --amber: #ffb648;
+  }
+
+  *{ margin:0; padding:0; box-sizing:inherit; }
+  html,body{ height:100%; }
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    display:flex;
+    justify-content:center;
+    padding: clamp(20px, 6vw, 56px) 16px;
+  }
+  .wrap{ width:100%; max-width: 440px; }
+
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+
+  .hero{ margin-top: 18px; text-align: center; }
+  .hero .num{
+    font-size: clamp(72px, 24vw, 108px);
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: -0.01em;
+    color: var(--blue);
+  }
+  .hero .chrono{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    margin-top: 14px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 8px 18px;
+  }
+  .hero .chrono .dot{
+    width:8px; height:8px; border-radius:50%;
+    background: var(--amber);
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse{
+    0%,100%{ opacity:1; }
+    50%{ opacity:.25; }
+  }
+  .hero .unit{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  h1{
+    margin-top: 22px;
+    text-align:center;
+    font-size: clamp(20px, 5.5vw, 24px);
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    color: var(--muted);
+  }
+  p.sub{
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.6;
+    max-width: 38ch;
+  }
+
+  .prices{
+    margin-top: 32px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--panel);
+  }
+  .price-row{
+    display:flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 18px 20px;
+  }
+  .price-row + .price-row{
+    border-top: 1px solid var(--line);
+  }
+  .price-row .label{ font-size: 15px; }
+  .price-row .note{
+    display:block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+  .price-row .amount{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 22px;
+    color: var(--amber);
+    white-space: nowrap;
+  }
+  .price-row{
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+  .price-row .pay-btn{
+    display:block;
+    width:100%;
+    text-align:center;
+    text-decoration:none;
+    font-weight:700;
+    font-size:13.5px;
+    padding:10px;
+    border-radius:9px;
+    background: var(--blue);
+    color:#fff;
+    transition: filter .15s, transform .05s;
+  }
+  .price-row .pay-btn:active{ transform: translateY(1px); }
+  .price-row .pay-btn:hover{ filter: brightness(1.08); }
+  .price-row .pay-soon{
+    display:block;
+    width:100%;
+    text-align:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color: var(--muted);
+  }
+
+  .contact{
+    margin-top: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .contact a{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap: 9px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 14.5px;
+    padding: 15px;
+    border-radius: 12px;
+    transition: filter .15s, transform .05s;
+  }
+  .contact a:active{ transform: translateY(1px); }
+  .contact a.tiktok{ background: var(--text); color: var(--bg); }
+  .contact a.snap{ background: #fffc00; color: #111; }
+  .contact a:hover{ filter: brightness(1.07); }
+  .contact a small{
+    font-weight: 500;
+    opacity: .65;
+    font-size: 12px;
+  }
+
+  .note-box{
+    margin-top: 24px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.65;
+    border-left: 2px solid var(--line);
+    padding-left: 12px;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="eyebrow">Déblocage téléphone · service indépendant</p>
+
+    <div class="hero">
+      <div class="num">SS06</div>
+      <div class="chrono"><span class="dot"></span><span id="chrono-val">20:00</span></div>
+      <p class="unit">délai moyen</p>
+    </div>
+
+    <h1>Déblocage téléphone</h1>
+    <p class="sub">
+      Blocage opérateur, SIM, réseau — envoie-moi ton IMEI
+      (compose <strong>*#06#</strong> pour l'afficher) et je te dis
+      en quelques minutes si c'est faisable.
+    </p>
+
+    <div class="prices">
+      <div class="price-row">
+        <div>
+          <div class="label">Sur place</div>
+          <span class="note">rendez-vous en personne</span>
+        </div>
+        <div class="amount">40 €</div>
+        <a class="pay-btn" href="https://pay.sumup.com/p/s/X27T7BJZOX" target="_blank" rel="noreferrer">
+          Payer 40 € · Apple Pay / carte
+        </a>
+      </div>
+      <div class="price-row">
+        <div>
+          <div class="label">À distance</div>
+          <span class="note">partout en France</span>
+        </div>
+        <div class="amount">60 €</div>
+        <a class="pay-btn" href="https://pay.sumup.com/b2c/X0407A8CSI" target="_blank" rel="noreferrer">
+          Payer 60 € · Apple Pay / carte
+        </a>
+      </div>
+    </div>
+
+    <div class="contact">
+      <a class="tiktok" href="https://tiktok.com/@snapunlock02" target="_blank" rel="noreferrer">
+        🎵 TikTok <small>@snapunlock02</small>
+      </a>
+      <a class="snap" href="https://snapchat.com/add/hmz_026" target="_blank" rel="noreferrer">
+        👻 Snapchat <small>hmz_026</small>
+      </a>
+    </div>
+
+    <p class="note-box">
+      Le statut réseau/blocage définitif se confirme au cas par cas,
+      selon le modèle et l'opérateur. Prix fixes, pas de frais caché.
+    </p>
+  </div>
+
+  <script>
+    (function () {
+      var el = document.getElementById('chrono-val');
+      var totalSeconds = 20 * 60;
+      function render() {
+        var m = Math.floor(totalSeconds / 60);
+        var s = totalSeconds % 60;
+        el.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+      }
+      render();
+      setInterval(function () {
+        totalSeconds -= 1;
+        if (totalSeconds < 0) totalSeconds = 20 * 60;
+        render();
+      }, 1000);
+    })();
+  </script>
+</body>
+</html>
